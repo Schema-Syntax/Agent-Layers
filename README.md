@@ -27,6 +27,9 @@ The original concept this was built from used a periodic table. The goal here wa
 7. **Infrastructure & Deployment** — how agents are built and run
 8. **Applications** — what agents accomplish in the world
 
+![Agent-Layers preview](preview01.png)
+![Agent-Layers modal preview](preview02.png)
+
 ## Credits
 
 The original *Agentic AI Periodic Table* concept was posted on LinkedIn by [Anastasiia S.](https://www.linkedin.com/posts/anastasiiasha_agenticai-artificialintelligence-llm-share-7439733360182222849-bXfF) — the idea of mapping agentic AI terminology in a periodic table format is hers. This version restructures, expands, and reimplements that concept as an interactive study tool.
