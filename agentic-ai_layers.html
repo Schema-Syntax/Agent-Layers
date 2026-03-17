@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic AI Periodic Table v2</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--surface:#ffffff;--surface2:#eeede8;--surface3:#e6e4de;
+  --border:rgba(0,0,0,0.1);--border-med:rgba(0,0,0,0.2);
+  --text:#181816;--text2:#52524e;--text3:#88887e;
+  --radius:7px;--radius-lg:11px;
+  --shadow:0 2px 10px rgba(0,0,0,0.08);--shadow-lg:0 10px 40px rgba(0,0,0,0.15);
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#111110;--surface:#1a1a18;--surface2:#222220;--surface3:#2a2a27;
+  --border:rgba(255,255,255,0.09);--border-med:rgba(255,255,255,0.16);
+  --text:#e6e6e0;--text2:#96968e;--text3:#62625a;
+  --shadow:0 2px 10px rgba(0,0,0,0.4);--shadow-lg:0 10px 40px rgba(0,0,0,0.55);
+}}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
+
+header{padding:1.75rem 1.75rem 1rem;background:var(--surface);border-bottom:0.5px solid var(--border)}
+header h1{font-size:20px;font-weight:500;letter-spacing:-0.3px;margin-bottom:3px}
+header p{font-size:12px;color:var(--text2)}
+
+.toolbar{padding:0.75rem 1.75rem;background:var(--surface);border-bottom:0.5px solid var(--border);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.toolbar input{flex:1;min-width:180px;padding:7px 11px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:var(--surface2);color:var(--text);font-size:13px;outline:none}
+.toolbar input:focus{border-color:var(--border-med)}
+.progress-bar-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3)}
+.progress-bar{width:120px;height:6px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.progress-bar-fill{height:100%;background:#5a9e6f;border-radius:3px;transition:width 0.3s}
+
+.cat-strip{padding:0.6rem 1.75rem;background:var(--surface);border-bottom:0.5px solid var(--border);display:flex;flex-wrap:wrap;gap:5px}
+.cat-btn{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:14px;border:0.5px solid var(--border-med);background:transparent;color:var(--text2);font-size:11px;cursor:pointer;transition:all 0.12s;white-space:nowrap}
+.cat-btn:hover{background:var(--surface2)}
+.cat-btn.active{border-color:transparent}
+.cat-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+
+.kbd-row{padding:0.4rem 1.75rem;background:var(--surface);border-bottom:0.5px solid var(--border);font-size:11px;color:var(--text3)}
+kbd{background:var(--surface2);border:0.5px solid var(--border-med);border-radius:3px;padding:1px 4px;font-size:10px;font-family:inherit}
+
+.main{padding:1.25rem 1.75rem 2rem;max-width:1500px;margin:0 auto}
+
+.row-section{margin-bottom:1.1rem}
+.row-label{font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;padding-left:2px;display:flex;align-items:center;gap:8px}
+.row-label::after{content:'';flex:1;height:0.5px;background:var(--border)}
+.row-num{background:var(--surface3);color:var(--text3);border-radius:3px;padding:1px 5px;font-size:9px;letter-spacing:0.04em}
+
+.tile-row{display:grid;gap:6px}
+.tile-row.cols-a{grid-template-columns:repeat(auto-fill,minmax(95px,1fr))}
+.tile-row.cols-b{grid-template-columns:repeat(auto-fill,minmax(95px,1fr))}
+
+.tile{border-radius:var(--radius);padding:7px 8px;cursor:pointer;transition:transform 0.1s,box-shadow 0.1s;border:0.5px solid rgba(0,0,0,0.07);min-height:80px;display:flex;flex-direction:column;position:relative;user-select:none}
+.tile:hover{transform:translateY(-2px) scale(1.035);box-shadow:var(--shadow);z-index:2}
+.tile.vendor{border-style:dashed;border-width:1.5px}
+.tile.dimmed{opacity:0.15;pointer-events:none}
+.tile.studied::after{content:'✓';position:absolute;top:5px;right:6px;font-size:9px;opacity:0.7}
+
+.tile-sym{font-size:15px;font-weight:500;line-height:1.1;letter-spacing:-0.3px}
+.tile-name{font-size:8.5px;font-weight:500;line-height:1.25;margin-top:3px;opacity:0.88}
+.tile-desc{font-size:7.5px;line-height:1.35;margin-top:3px;opacity:0.7}
+
+.app-band{background:var(--surface2);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-top:0.5rem}
+.app-band-label{font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.app-band .tile-row{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(3px)}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius-lg);border:0.5px solid var(--border-med);padding:1.75rem;max-width:500px;width:100%;max-height:88vh;overflow-y:auto;position:relative;box-shadow:var(--shadow-lg);animation:mIn 0.16s ease-out}
+@keyframes mIn{from{opacity:0;transform:translateY(10px) scale(0.97)}to{opacity:1;transform:none}}
+.modal-close{position:absolute;top:1rem;right:1rem;background:var(--surface2);border:0.5px solid var(--border);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;color:var(--text2);line-height:1}
+.modal-close:hover{background:var(--surface3)}
+
+.modal-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:1rem;padding-right:2rem}
+.modal-sym-block{border-radius:var(--radius);width:58px;height:58px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:500;flex-shrink:0;border:0.5px solid rgba(0,0,0,0.08);text-align:center;line-height:1.1}
+.modal-title-group{flex:1;min-width:0}
+.modal-cat-badge{font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px;display:inline-block;margin-bottom:5px;border:0.5px solid rgba(0,0,0,0.06)}
+.modal-name{font-size:16px;font-weight:500;color:var(--text);line-height:1.2;margin-bottom:2px}
+.modal-short{font-size:12px;color:var(--text2)}
+hr.div{border:none;border-top:0.5px solid var(--border);margin:0.9rem 0}
+.modal-body{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:1rem}
+.modal-row-ctx{font-size:11px;color:var(--text3);margin-bottom:0.75rem;padding:6px 9px;background:var(--surface2);border-radius:var(--radius);border-left:2px solid var(--border-med)}
+.modal-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:1rem}
+.modal-tag{font-size:10px;padding:2px 7px;border-radius:9px;background:var(--surface2);color:var(--text3);border:0.5px solid var(--border)}
+.modal-related{font-size:11px;color:var(--text3);margin-bottom:1rem}
+.modal-related span{color:var(--text2);cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-med);margin-right:6px}
+.modal-related span:hover{color:var(--text)}
+.modal-studied-btn{width:100%;padding:7px;font-size:12px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:var(--surface2);color:var(--text2);cursor:pointer;margin-bottom:0.75rem;transition:all 0.12s}
+.modal-studied-btn:hover{background:var(--surface3)}
+.modal-studied-btn.done{background:#e8f5ec;color:#2d7a47;border-color:#b5ddc2}
+@media(prefers-color-scheme:dark){.modal-studied-btn.done{background:#1a3325;color:#6ec98a;border-color:#2d5a3e}}
+.modal-progress{text-align:center;font-size:11px;color:var(--text3);margin-bottom:0.6rem}
+.modal-nav{display:flex;gap:7px}
+.modal-nav button{flex:1;padding:6px 10px;font-size:12px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all 0.12s}
+.modal-nav button:hover{background:var(--surface3);color:var(--text)}
+
+.no-match{color:var(--text3);text-align:center;padding:2rem;font-size:13px;display:none}
+
+@media(max-width:600px){
+  header,.toolbar,.cat-strip,.kbd-row{padding-left:1rem;padding-right:1rem}
+  .main{padding:1rem 1rem 2rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Agentic AI — Periodic Table v2</h1>
+  <p>68 concepts across 8 abstraction layers &nbsp;·&nbsp; position encodes meaning &nbsp;·&nbsp; dashed border = vendor/tool</p>
+</header>
+
+<div class="toolbar">
+  <input type="text" id="search" placeholder="Search terms, tags, keywords..." oninput="applyFilters()" autocomplete="off" spellcheck="false">
+  <div class="progress-bar-wrap">
+    <div class="progress-bar"><div class="progress-bar-fill" id="pb-fill" style="width:0%"></div></div>
+    <span id="pb-label">0 / 68 studied</span>
+  </div>
+  <button class="cat-btn" onclick="resetStudied()" style="font-size:11px;padding:3px 9px">reset progress</button>
+</div>
+
+<div class="cat-strip" id="cat-strip"></div>
+<div class="kbd-row"><kbd>click</kbd> tile &nbsp; <kbd>←</kbd><kbd>→</kbd> navigate &nbsp; <kbd>Esc</kbd> close &nbsp; <kbd>S</kbd> mark studied</div>
+
+<div class="main">
+  <div id="rows-container"></div>
+  <div class="no-match" id="no-match">No matching tiles</div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeIfBg(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-header">
+      <div class="modal-sym-block" id="m-sym"></div>
+      <div class="modal-title-group">
+        <div class="modal-cat-badge" id="m-cat"></div>
+        <div class="modal-name" id="m-name"></div>
+        <div class="modal-short" id="m-short"></div>
+      </div>
+    </div>
+    <hr class="div">
+    <div class="modal-row-ctx" id="m-row-ctx"></div>
+    <div class="modal-body" id="m-body"></div>
+    <div class="modal-tags" id="m-tags"></div>
+    <div class="modal-related" id="m-related"></div>
+    <button class="modal-studied-btn" id="m-studied-btn" onclick="toggleStudied()"></button>
+    <div class="modal-progress" id="m-progress"></div>
+    <div class="modal-nav">
+      <button onclick="navModal(-1)">← prev</button>
+      <button onclick="navModal(1)">next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATS = {
+  "AI Terminology":                   {l:"#FBEAF0",lt:"#72243E",d:"#4B1528",dt:"#F4C0D1"},
+  "Agent Patterns":                   {l:"#FAECE7",lt:"#712B13",d:"#4A1B0C",dt:"#F5C4B3"},
+  "Vendor Tools":                     {l:"#E6F1FB",lt:"#0C447C",d:"#042C53",dt:"#B5D4F4"},
+  "Capabilities & Skills":            {l:"#EAF3DE",lt:"#27500A",d:"#173404",dt:"#C0DD97"},
+  "Evaluation & Safety":              {l:"#FAEEDA",lt:"#633806",d:"#412402",dt:"#FAC775"},
+  "Business & Use Cases":             {l:"#EEEDFE",lt:"#3C3489",d:"#26215C",dt:"#CECBF6"},
+  "Memory & Context":                 {l:"#E1F5EE",lt:"#085041",d:"#04342C",dt:"#9FE1CB"},
+  "Agent Collaboration & Networking": {l:"#FCEBEB",lt:"#791F1F",d:"#501313",dt:"#F7C1C1"},
+  "Deployment & Scaling":             {l:"#F1EFE8",lt:"#444441",d:"#2C2C2A",dt:"#D3D1C7"},
+};
+
+const ROWS = [
+  {num:"01",label:"Foundations — what AI is at the conceptual level"},
+  {num:"02",label:"Core Capabilities — what an agent can do as primitive operations"},
+  {num:"03",label:"Memory Concepts — how agents think about retaining information"},
+  {num:"04",label:"Memory Implementation — where and how information is stored and retrieved"},
+  {num:"05",label:"Patterns & Architecture — how agents are structured and orchestrated"},
+  {num:"06",label:"Evaluation & Safety — how agents are governed and validated"},
+  {num:"07",label:"Infrastructure & Deployment — how agents are built and run"},
+  {num:"08",label:"Applications — what agents accomplish in the world"},
+];
+
+const TILES = [
+  // ROW 1 — Foundations
+  {sym:"LLM",name:"Large Language Model",cat:"AI Terminology",row:1,short:"Foundation of today's AI agents",body:"Large Language Models are the core reasoning engine in virtually all current agentic AI systems. Trained on massive text corpora with transformer architectures, LLMs generate text that functions as reasoning, planning, code, structured output, and natural language response. In agentic systems the LLM acts as the brain — interpreting goals, selecting tools, processing results, and deciding next steps. GPT-4, Claude, Gemini, Llama, and Mistral are prominent examples.",tags:["transformer","foundation model","reasoning","pre-training","generation"],related:["ML","AAI","PE","FT"]},
+  {sym:"ML",name:"Machine Learning",cat:"AI Terminology",row:1,short:"Training models on data",body:"Machine learning is the discipline of building systems that improve performance through exposure to data rather than explicit programming. In agentic AI, ML underpins foundation models (via pre-training and RLHF), reward models used for alignment, fine-tuning pipelines for domain adaptation, and learned embeddings used in retrieval systems. Understanding ML fundamentals is prerequisite to understanding how agents are built and improved.",tags:["supervised learning","RLHF","fine-tuning","embeddings","neural networks"],related:["LLM","RL","FT","EMB"]},
+  {sym:"RL",name:"Reinforcement Learning",cat:"AI Terminology",row:1,short:"Learning from trial-and-error feedback",body:"Reinforcement learning trains systems by rewarding desired behaviors and penalizing undesired ones, allowing strategies to emerge through iterative trial and error. In LLM-based agents, RL appears in RLHF (Reinforcement Learning from Human Feedback) — the technique used to align model behavior with human preferences — and in emerging frameworks that use RL to train agents on long-horizon tasks with delayed rewards.",tags:["RLHF","reward","policy","alignment","feedback"],related:["ML","FEED","SAFE"]},
+  {sym:"AAI",name:"Agentic AI",cat:"AI Terminology",row:1,short:"Autonomous, goal-driven AI systems",body:"Agentic AI refers to AI systems that operate with a degree of autonomy, pursuing goals through multi-step reasoning and action without requiring a human to approve every decision. Unlike traditional AI that responds to a single prompt, agentic systems plan, use tools, call APIs, spawn sub-agents, and revise their approach based on results. The term captures the shift from AI-as-responder to AI-as-actor.",tags:["autonomy","goal-driven","multi-step","planning"],related:["LLM","PLAN","MAS","TC"]},
+  {sym:"AGI",name:"Artificial General Intelligence",cat:"AI Terminology",row:1,short:"Human-level intelligence across domains",body:"AGI describes a hypothetical AI system capable of performing any intellectual task a human can, across arbitrary domains, with equivalent or superior ability. It contrasts with narrow AI, which excels only in specific tasks. No system today is considered AGI, though frontier models have begun demonstrating generalization that blurs the boundary. AGI is frequently invoked in agentic discussions because autonomous agents are seen as a step along that trajectory.",tags:["hypothetical","general intelligence","long-horizon","alignment"],related:["ASI","AAI","LLM"]},
+  {sym:"ASI",name:"Artificial Superintelligence",cat:"AI Terminology",row:1,short:"Hypothetical AI beyond human intelligence",body:"ASI describes a hypothetical AI that surpasses human cognitive ability across every domain simultaneously — scientific reasoning, creativity, social intelligence, and strategic planning. ASI is a central concept in AI safety research: a superintelligent system pursuing misaligned goals could pose existential risks. Current agentic AI is far below this threshold, but the trajectory of capability scaling keeps the concept relevant.",tags:["hypothetical","AI safety","alignment","existential risk","capability"],related:["AGI","SAFE","HUMAN"]},
+  {sym:"EMB",name:"Embeddings",cat:"Capabilities & Skills",row:1,short:"Vector representations of meaning",body:"Embeddings are numerical vector representations of text, images, or other data that capture semantic meaning. Similar concepts land near each other in vector space. In agentic AI, embeddings are foundational to RAG pipelines (embedding documents and queries for similarity search), long-term memory systems, and semantic routing between agents. Models like OpenAI text-embedding-3, Cohere Embed, and open-source alternatives (BGE, E5) produce embeddings used across virtually every knowledge-intensive agentic application.",tags:["vectors","semantic search","RAG","similarity","representation"],related:["RAG","LTM","SAVE","STM"]},
+  {sym:"NLP",name:"Natural Language Processing",cat:"Capabilities & Skills",row:1,short:"Understanding and generating human language",body:"NLP is the field of AI focused on enabling computers to understand, interpret, and generate human language. It underpins virtually every layer of agentic AI: intent classification (what does the user want?), named entity recognition (who/what is mentioned?), sentiment analysis, parsing, and language generation. Modern LLMs have subsumed many classical NLP tasks, but NLP as a discipline provides the conceptual vocabulary for reasoning about how agents process language.",tags:["intent","NER","parsing","generation","linguistics"],related:["LLM","TRANS","SUM","VOICE"]},
+
+  // ROW 2 — Core Capabilities
+  {sym:"TC",name:"Tool Calling",cat:"Capabilities & Skills",row:2,short:"Triggering external functions",body:"Tool calling (function calling) is the mechanism by which LLMs interact with the external world. The model receives a schema of available tools and decides which to invoke and with what parameters. The result returns to the model, which incorporates it into its next reasoning step. Tool calling is the primary mechanism enabling agents to take real-world actions: searching the web, running code, querying databases, sending messages, and calling APIs.",tags:["function calling","tool use","API integration","actions","schema","JSON"],related:["API","MCP","PLAN","ERR"]},
+  {sym:"RAG",name:"Retrieval-Augmented Generation",cat:"Capabilities & Skills",row:2,short:"Combining LLM with knowledge retrieval",body:"RAG is an architecture pattern where an agent retrieves relevant documents or data from an external knowledge base before generating a response. Rather than relying solely on parametric knowledge baked in during training, RAG grounds responses in retrieved, verifiable information. A typical pipeline: embed the query, search a vector database, prepend retrieved chunks to the prompt, generate a response. RAG is foundational to virtually every knowledge-intensive agentic application.",tags:["vector database","embeddings","knowledge base","grounding","retrieval","chunking"],related:["EMB","SAVE","LTM","DOC","SUM"]},
+  {sym:"PE",name:"Prompt Engineering",cat:"Capabilities & Skills",row:2,short:"Directing model behavior through instruction",body:"Prompt engineering is the practice of designing and refining the inputs given to LLMs to elicit desired outputs. In agentic systems this encompasses system prompt design, few-shot example selection, chain-of-thought elicitation, output format specification, and persona assignment. It is both an art and a discipline — small changes in phrasing can significantly alter agent behavior. DSPy (from Stanford) represents an emerging approach to automated prompt optimization.",tags:["system prompt","few-shot","chain-of-thought","DSPy","instruction","output format"],related:["LLM","FT","PLAN","SAFE"]},
+  {sym:"FT",name:"Fine-Tuning",cat:"Capabilities & Skills",row:2,short:"Adapting models for specific domains",body:"Fine-tuning adapts a pre-trained foundation model to a specific domain, task, or style by continuing training on a curated dataset. In agentic AI, fine-tuning is used to improve tool-use reliability, domain-specific accuracy, consistent output formatting, and persona adherence. Parameter-efficient methods (LoRA, QLoRA) make fine-tuning feasible on modest hardware. Fine-tuning complements prompt engineering — one shapes the model's weights, the other shapes its inputs.",tags:["LoRA","QLoRA","domain adaptation","PEFT","training","RLHF"],related:["ML","PE","LLM","FEED"]},
+  {sym:"IMG",name:"Image Recognition",cat:"Capabilities & Skills",row:2,short:"Interpreting visual data",body:"Image recognition gives agents the ability to perceive and interpret visual inputs — identifying objects, reading text (OCR), analyzing charts, understanding screenshots, and responding to visual context. Powered by vision-language models (VLMs) such as GPT-4V, Claude's vision, Gemini, LLaVA, and Qwen-VL. In agentic pipelines, vision enables agents that act on screen content, process document images, and handle multimodal inputs.",tags:["vision","VLM","OCR","multimodal","GPT-4V","LLaVA"],related:["NLP","DOC","VOICE"]},
+  {sym:"VOICE",name:"Voice Interaction",cat:"Capabilities & Skills",row:2,short:"Speech recognition and synthesis",body:"Voice interaction capabilities allow agentic systems to accept spoken input (ASR — automatic speech recognition) and produce spoken output (TTS — text-to-speech synthesis). This enables voice-first interfaces: smart assistants, call center bots, accessibility tools. Notable components include Whisper (OpenAI's ASR), ElevenLabs and Kokoro (TTS), and real-time voice pipeline frameworks like LiveKit and Daily.",tags:["speech","ASR","TTS","Whisper","ElevenLabs","Kokoro","LiveKit"],related:["NLP","IMG","TRANS"]},
+  {sym:"TRANS",name:"Translation",cat:"Capabilities & Skills",row:2,short:"Converting between languages",body:"Translation capabilities allow agents to process and generate content across languages, enabling multilingual workflows. Modern LLMs provide high-quality translation as an emergent capability, but specialized translation agents may also call dedicated services (DeepL, Google Translate API) for higher accuracy. In agentic systems, translation is often a tool call enabling cross-language document processing, customer support, and global content workflows.",tags:["multilingual","DeepL","localization","NLP","language","i18n"],related:["NLP","VOICE","SUM","DOC"]},
+  {sym:"SUM",name:"Summarization",cat:"Capabilities & Skills",row:2,short:"Condensing information",body:"Summarization compresses long documents for RAG retrieval, condenses conversation history to manage context window limits, generates executive summaries of research, and produces digest outputs from multi-step agent runs. Techniques vary from extractive (selecting key sentences) to abstractive (generating new text capturing key ideas). Evaluating summary quality is non-trivial and often requires human review or LLM-as-judge patterns.",tags:["compression","RAG","context management","abstractive","extractive","LLM-as-judge"],related:["RAG","FORG","CTX","MEM"]},
+  {sym:"IDEA",name:"Idea Generation",cat:"Capabilities & Skills",row:2,short:"Brainstorming new suggestions",body:"Idea generation is the capability of LLM-based agents to produce novel combinations, hypotheses, designs, or concepts by drawing on broad training knowledge and applying it to a given problem context. Used in early-stage brainstorming, product ideation, research hypothesis formation, and creative writing workflows. Techniques like few-shot prompting, role assignment, and constraint specification improve output quality and diversity.",tags:["brainstorming","creativity","ideation","divergent thinking","few-shot"],related:["PE","PLAN","CHAT"]},
+  {sym:"DOC",name:"Document Reader",cat:"Capabilities & Skills",row:2,short:"Reading files and PDFs",body:"Document reading capabilities allow agents to ingest, parse, and reason over structured and unstructured documents — PDFs, Word files, spreadsheets, PowerPoint decks, HTML pages. This involves a parsing layer (PyMuPDF, docling, Unstructured.io) converting files to text or structured data, followed by chunking and embedding for RAG pipelines. Agents with document reading can answer questions about uploaded files, extract key information, and generate summaries.",tags:["RAG","PDF","parsing","Unstructured.io","document intelligence","chunking"],related:["RAG","EMB","IMG","SUM"]},
+  {sym:"ERR",name:"Error Handling",cat:"Capabilities & Skills",row:2,short:"Fixing failures in agent pipelines",body:"Error handling in agentic systems is substantially more complex than in traditional software because failures occur at multiple layers: the LLM producing malformed output, a tool call returning an error, an external API being unavailable, or the agent pursuing an incorrect sub-goal. Robust design includes retry logic, fallback strategies, error classification, and graceful degradation. Structured output enforcement (JSON schema validation, Pydantic) is a common technique.",tags:["resilience","retry","fallback","validation","Pydantic","structured output"],related:["TC","SAFE","TEST","MON"]},
+  {sym:"REM",name:"Reminder",cat:"Capabilities & Skills",row:2,short:"Alerting for tasks",body:"Reminder capabilities allow agents to schedule and deliver notifications, follow-ups, and alerts based on time, events, or conditions. An agent might set a reminder to follow up on an email in 3 days, alert a user when a project deadline approaches, or trigger a workflow when a monitored condition is met. Implementation typically involves integration with calendar services, notification APIs, and task scheduling infrastructure.",tags:["notifications","scheduling","follow-up","alerts","calendar","automation"],related:["CAL","TC","FEED"]},
+
+  // ROW 3 — Memory Concepts
+  {sym:"MEM",name:"Memory",cat:"Memory & Context",row:3,short:"The general capability to retain and recall",body:"Memory in agentic AI is the general capability to retain, organize, and retrieve information for use in future reasoning. It encompasses multiple types: in-context (short-term), persistent (long-term), semantic (conceptual knowledge), episodic (event-specific), and procedural (how to do things). Memory systems are a major active research and engineering area — the challenge is not just storing information but knowing what to store, how to index it, and when to retrieve it.",tags:["long-term","short-term","episodic","semantic","retrieval","procedural"],related:["STM","LTM","CTX","FORG","SAVE"]},
+  {sym:"STM",name:"Short-Term Memory",cat:"Memory & Context",row:3,short:"In-session working memory",body:"Short-term memory refers to information held in the active context window — the working memory available during a single interaction or session. This includes conversation history, retrieved documents, tool results, and intermediate reasoning. Managing short-term memory means deciding what to include, what to summarize, and what to drop, especially as context windows fill. Techniques include sliding window, summarization-based compression, and selective retention.",tags:["context window","session","working memory","summarization","attention"],related:["LTM","MEM","CTX","FORG","SUM"]},
+  {sym:"LTM",name:"Long-Term Memory",cat:"Memory & Context",row:3,short:"Persistent memory across sessions",body:"Long-term memory systems allow agents to retain and retrieve information across sessions that exceed the context window. Implementations use vector databases (semantic similarity search), relational stores (structured facts), or hybrid approaches. Memory writing strategies determine what gets stored (summarization, entity extraction, key fact identification), while retrieval strategies determine what gets recalled (top-k similarity, keyword match, recency weighting). MemGPT and Mem0 are purpose-built frameworks.",tags:["MemGPT","Mem0","vector database","cross-session","persistence","retrieval"],related:["STM","MEM","SAVE","EMB","RAG"]},
+  {sym:"CTX",name:"Context Switch",cat:"Memory & Context",row:3,short:"Adapting to new topics mid-session",body:"Context switching describes the challenge of an agent transitioning between topics, tasks, or roles within a session without losing coherence or carrying over irrelevant context. Effective context switching requires the agent to recognize topic boundaries, selectively retain relevant prior context, and reset working state appropriately. This is an active area of prompt engineering and memory system design, particularly in long-running agents.",tags:["context window","memory","topic transitions","coherence","prompt engineering"],related:["STM","MEM","FORG","PLAN"]},
+  {sym:"FORG",name:"Forgetting",cat:"Memory & Context",row:3,short:"Deliberate pruning of irrelevant info",body:"Forgetting is a deliberate memory management strategy — selectively dropping information from working memory or long-term storage to prevent context pollution, reduce cost, and maintain relevance. Techniques include sliding window truncation, summarization-based compression, recency-weighted retrieval, and explicit memory deletion APIs. The goal mirrors human working memory management: keep what's relevant, discard what isn't. Done poorly, forgetting causes agents to lose critical context mid-task.",tags:["memory management","context window","summarization","pruning","compression"],related:["MEM","STM","CTX","SUM","SAVE"]},
+
+  // ROW 4 — Memory Implementation
+  {sym:"SAVE",name:"Data Storage",cat:"Memory & Context",row:4,short:"The persistence layer for agent knowledge",body:"Data storage for agentic AI encompasses the systems used to persist agent state, memory, knowledge, and outputs. This includes vector databases (Pinecone, Chroma, Weaviate, pgvector) for semantic retrieval, relational databases for structured records, key-value stores for session state, and document stores for knowledge bases. Choosing the right storage layer — and designing retrieval strategies — is a core architectural decision. The storage layer is what makes long-term memory possible.",tags:["vector database","Pinecone","Chroma","pgvector","persistence","Weaviate","retrieval"],related:["LTM","MEM","EMB","RAG","HIST"]},
+  {sym:"HIST",name:"History Log",cat:"Memory & Context",row:4,short:"Interaction records over time",body:"History logs record an agent's past actions, tool calls, observations, and conversation turns. They serve multiple purposes: providing context for ongoing sessions, enabling audit trails for accountability, supporting debugging and evaluation, and feeding into long-term memory systems. In multi-turn agent systems, the history log is carefully managed — selectively included in context, summarized, or stored externally — to avoid exceeding context window limits.",tags:["audit trail","logging","context management","debugging","multi-turn"],related:["SAVE","MEM","MON","TEST","DIARY"]},
+  {sym:"DIARY",name:"Diary Memory",cat:"Memory & Context",row:4,short:"Episodic narrative log",body:"Diary memory is a specific pattern where an agent maintains a running log of events, interactions, and observations — analogous to a personal diary. This log can be queried or summarized to inform future behavior. Diary memory supports narrative continuity across sessions, useful for personal assistant agents, coaching applications, and any use case where the agent needs to remember the arc of a relationship or project over time.",tags:["episodic memory","narrative","continuity","personal assistant","long-term"],related:["HIST","LTM","MEM","NOTE"]},
+  {sym:"NOTE",name:"Notepad Memory",cat:"Memory & Context",row:4,short:"Ephemeral scratchpad storage",body:"Notepad memory is an ephemeral scratchpad available to an agent during a task — a place to record intermediate results, working hypotheses, or partial computations without committing them to long-term storage. Analogous to scratch paper, it externalizes intermediate state during complex multi-step reasoning. Typically implemented as a dedicated section of the context, a temporary file, or a structured memory slot cleared at task completion.",tags:["scratchpad","working memory","intermediate state","reasoning","ephemeral"],related:["STM","MEM","PLAN","DIARY"]},
+
+  // ROW 5 — Patterns & Architecture
+  {sym:"PLAN",name:"Planning",cat:"Agent Patterns",row:5,short:"Breaking complex goals into steps",body:"Planning is the cognitive capability that distinguishes simple chatbots from true agents. A planning agent takes a high-level goal and decomposes it into a sequence of sub-tasks, anticipating dependencies and contingencies. Approaches include chain-of-thought (implicit planning in reasoning), ReAct (reason-act loops), tree-of-thought (branching plan exploration), and LLM-driven task graphs. Planning quality is the primary determinant of agent success on complex tasks.",tags:["chain-of-thought","tree-of-thought","decomposition","reasoning","task graph"],related:["ReAct","HAA","TASK","TC","CTX"]},
+  {sym:"ReAct",name:"ReAct",cat:"Agent Patterns",row:5,short:"Reason-then-act loop pattern",body:"ReAct (Reasoning + Acting) is a foundational agentic pattern where the model alternates between generating reasoning traces (thinking about what to do next) and taking actions (calling tools, executing steps). This interleaving of thought and action improves task performance by making intermediate reasoning explicit and correctable. Introduced in a 2022 paper from Google and Princeton, ReAct has become the de facto baseline pattern for tool-using agents.",tags:["reasoning","acting","tool use","thought","trace","loop"],related:["PLAN","TC","HAA","CHAT"]},
+  {sym:"CHAT",name:"Chat Agent",cat:"Agent Patterns",row:5,short:"Conversational agent pattern",body:"Chat agents are the most familiar agentic pattern: conversational systems that engage in natural language dialogue to accomplish tasks or provide information. Modern chat agents go beyond simple Q&A — they maintain session context, use tools, remember user preferences, and initiate multi-step workflows from a single request. The chat interface is often a thin front-end over a more complex agentic backend with planning, tool use, and memory.",tags:["conversational AI","dialogue","chatbot","interface","multi-turn","NLP"],related:["ReAct","PLAN","STM","IDEA"]},
+  {sym:"MAP",name:"Map Agent",cat:"Agent Patterns",row:5,short:"Location-based specialized agent",body:"Map agents are specialized agents that interact with geospatial data and mapping APIs (Google Maps, Mapbox, OpenStreetMap) to answer location-based queries, plan routes, find nearby resources, or integrate geography into broader tasks. In multi-agent systems, a map agent is typically called by a travel planning or logistics orchestrator. Tool use patterns here involve geocoding, routing, and place search APIs.",tags:["geospatial","routing","location","Google Maps","Mapbox","specialization"],related:["HAA","MAS","TC","A2A"]},
+  {sym:"HAA",name:"Hierarchical Agents",cat:"Agent Patterns",row:5,short:"Supervisors delegating to sub-agents",body:"Hierarchical agent architectures organize agents in a tree or directed graph: a high-level orchestrator breaks down complex goals into sub-tasks and delegates them to specialized sub-agents, then synthesizes results and manages dependencies. This mirrors how complex projects are managed in human organizations. LangGraph, AutoGen, and CrewAI all support hierarchical topologies. The key design challenge is deciding what the orchestrator owns vs. what it delegates.",tags:["orchestration","delegation","AutoGen","CrewAI","LangGraph","supervisor"],related:["MAS","CREW","PLAN","TASK","A2A"]},
+  {sym:"MAS",name:"Multi-Agent Systems",cat:"Agent Collaboration & Networking",row:5,short:"Multiple agents collaborating",body:"Multi-agent systems consist of multiple AI agents that interact, coordinate, and collaborate on tasks that would be difficult or impossible for a single agent. Agents may have specialized roles (researcher, writer, critic, executor), shared or separate memory, and explicit communication channels. Frameworks like AutoGen, CrewAI, LangGraph, and Swarm support MAS design. Key challenges: coordination overhead, conflicting agent outputs, and debugging distributed behavior.",tags:["AutoGen","CrewAI","LangGraph","coordination","specialization","Swarm"],related:["HAA","CREW","A2A","NET","TASK"]},
+  {sym:"CREW",name:"Crew Agents",cat:"Agent Collaboration & Networking",row:5,short:"Role-based cooperative agent setup",body:"Crew-style architectures (popularized by CrewAI) organize agents into defined roles with specific backstories, goals, and tool access — analogous to assembling a project team. Each agent has a clear function (researcher, analyst, writer, reviewer) and they collaborate sequentially or in parallel to complete a complex task. CrewAI provides a high-level abstraction for defining crews, tasks, and agent interactions with minimal boilerplate.",tags:["CrewAI","roles","collaboration","specialization","multi-agent","orchestration"],related:["MAS","HAA","TASK","COL"]},
+  {sym:"COL",name:"Collaboration",cat:"Agent Patterns",row:5,short:"Human + AI teamwork patterns",body:"Collaboration patterns describe how humans and AI agents work together on shared tasks with complementary roles. In agentic workflows this may mean a human provides goals while an agent executes and reports back, or a human reviews agent outputs before they're committed. Good collaboration design defines clear handoff points, escalation triggers, and shared context mechanisms. Human-in-the-loop (HITL) is a specific and important collaboration pattern.",tags:["HITL","human-in-the-loop","teamwork","handoff","escalation"],related:["HELP","HUMAN","MAS","CREW"]},
+  {sym:"HELP",name:"Human+AI Teams",cat:"Agent Collaboration & Networking",row:5,short:"Hybrid human-AI teaming",body:"Human+AI team patterns describe workflows where humans and agents have complementary, defined roles — neither fully automated nor purely manual. The agent handles high-volume, repetitive, or research-intensive portions while humans apply judgment, creativity, and accountability. Effective teaming requires clear escalation paths, trust calibration (knowing when to rely on the agent vs. verify), and interface design that makes agent reasoning transparent.",tags:["HITL","escalation","trust","collaboration","hybrid workflows","accountability"],related:["COL","HUMAN","HAA","MAS"]},
+
+  // ROW 6 — Evaluation & Safety
+  {sym:"ACC",name:"Accuracy Check",cat:"Evaluation & Safety",row:6,short:"Validating factual correctness",body:"Accuracy checking verifies that agent outputs are factually correct, logically consistent, and aligned with the intended goal. This includes automated evaluation with LLM-as-judge patterns, retrieval-augmented fact checking, unit tests for tool outputs, and human review pipelines. Accuracy is distinct from safety — an agent can be accurate but unsafe, or safe but inaccurate. Both must be evaluated independently.",tags:["evaluation","LLM-as-judge","fact checking","testing","quality"],related:["TEST","SAFE","FEED","HUMAN"]},
+  {sym:"TEST",name:"Testing",cat:"Evaluation & Safety",row:6,short:"Ensuring pipeline outputs work correctly",body:"Testing agentic systems involves verifying correct behavior across inputs, edge cases, and adversarial conditions. LLM outputs are non-deterministic, making test design more complex than traditional software. Evaluation frameworks include LangSmith, RAGAS (for RAG pipelines), PromptFoo, and custom eval harnesses. Test categories: unit tests (single tool calls), integration tests (multi-step flows), and red-teaming (safety and adversarial testing).",tags:["evaluation","RAGAS","PromptFoo","LangSmith","red-teaming","non-deterministic"],related:["ACC","SAFE","FEED","ERR","MON"]},
+  {sym:"SAFE",name:"Safety Guardrails",cat:"Evaluation & Safety",row:6,short:"Preventing harmful outputs and actions",body:"Safety guardrails constrain agent behavior to prevent harmful, unethical, or policy-violating outputs and actions. They operate at multiple levels: input filtering (blocking harmful prompts), output filtering (checking responses before delivery), action constraints (limiting what tools an agent can call), and constitutional AI / RLHF alignment in the base model. Tools like Guardrails AI, Llama Guard, and NeMo Guardrails provide framework-level implementation.",tags:["alignment","RLHF","content filtering","Guardrails AI","Llama Guard","NeMo","constitutional AI"],related:["ACC","HUMAN","TEST","FEED","RL"]},
+  {sym:"FEED",name:"Feedback Loop",cat:"Evaluation & Safety",row:6,short:"Improving agents from real-world signals",body:"Feedback loops continuously improve agent behavior based on signals from production. Feedback can be explicit (user ratings, thumbs up/down) or implicit (task completion rates, escalation frequency, time-to-resolution). This data feeds into fine-tuning, prompt optimization (DSPy, PromptBreeder), and RLHF pipelines. Closing the feedback loop distinguishes a deployed agent that improves over time from one that stays static.",tags:["RLHF","fine-tuning","DSPy","improvement","evaluation","online learning"],related:["TEST","ACC","FT","RL","MON"]},
+  {sym:"HUMAN",name:"Human Oversight",cat:"Evaluation & Safety",row:6,short:"Human-in-the-loop governance",body:"Human oversight maintains meaningful human control and review in agentic workflows, especially for high-stakes or irreversible actions. It includes approval gates (agent pauses for human sign-off), audit logging (full records of agent decisions), interpretability requirements (agent must explain reasoning), and override mechanisms. Human oversight is a core principle in responsible AI deployment and emphasized in AI governance frameworks globally.",tags:["HITL","governance","safety","accountability","interpretability","responsible AI"],related:["SAFE","COL","HELP","ACC","HIST"]},
+  {sym:"MON",name:"Monitoring",cat:"Deployment & Scaling",row:6,short:"Observing agents in production",body:"Monitoring tracks agent behavior in production: latency, error rates, token usage, tool call success/failure, hallucination signals, and goal completion rates. Unlike traditional software monitoring, agent monitoring must also capture semantic quality — did the agent actually accomplish the intent? Tools like LangSmith, Arize, Weights & Biases, and Datadog LLM observability are common. Monitoring feeds directly into the feedback loop for ongoing improvement.",tags:["observability","reliability","LangSmith","Arize","production","alerting"],related:["TEST","FEED","ERR","HIST","UPD"]},
+
+  // ROW 7 — Infrastructure & Deployment
+  {sym:"API",name:"Application Programming Interface",cat:"AI Terminology",row:7,short:"Connective tissue of agentic systems",body:"APIs are the connective tissue of agentic AI. An agent's ability to take actions in the world — browsing the web, querying databases, sending emails, calling services — depends entirely on well-defined APIs. In the agentic context, tools are typically wrapped API calls, and the agent decides which to invoke and with what parameters. REST APIs, GraphQL, and MCP (Model Context Protocol) servers are the dominant formats.",tags:["integration","tools","REST","MCP","function calling","GraphQL"],related:["TC","MCP","A2A","NET"]},
+  {sym:"MCP",name:"Model Context Protocol",cat:"Vendor Tools",row:7,short:"Standard for connecting agents to tools",body:"The Model Context Protocol (MCP) is an open standard published by Anthropic that defines a universal interface for connecting AI models to external tools, data sources, and services. MCP servers expose capabilities (tools, resources, prompts) via a standardized API; MCP clients (like Claude Desktop or custom agents) connect to these servers. MCP is rapidly becoming a de facto standard for tool use in agentic systems with broad ecosystem support.",tags:["Anthropic","tool use","standard","integration","open protocol","Claude Desktop"],related:["API","TC","A2A","NET"],vendor:true},
+  {sym:"A2A",name:"Agent-to-Agent Protocol",cat:"Agent Collaboration & Networking",row:7,short:"Standard for agent interoperability",body:"Agent-to-Agent (A2A) protocols define how AI agents discover, communicate with, and delegate tasks to each other. Google's A2A protocol (2025) is a notable open standard enabling agents built on different frameworks to interoperate. In multi-agent systems, a coordinator may spawn or call specialized sub-agents and aggregate their outputs. A2A is the formal infrastructure making cross-framework agent collaboration reliable at scale.",tags:["multi-agent","interoperability","Google A2A","delegation","protocol","discovery"],related:["MCP","NET","MAS","HAA","IBM-ACP"],vendor:false},
+  {sym:"IBM-ACP",name:"IBM Agent Comm. Protocol",cat:"Vendor Tools",row:7,short:"Shared workspace agent coordination",body:"IBM's Agent Communication Protocol (ACP) enables enterprise AI agents to communicate through a shared workspace model — agents post messages, share artifacts, and coordinate actions asynchronously. Unlike direct point-to-point communication, the shared workspace pattern reduces coupling and makes systems more resilient to individual agent failures. IBM positions ACP for enterprise workflows where audit trails, governance, and compliance are critical requirements.",tags:["IBM","enterprise","shared workspace","async","governance","audit","interoperability"],related:["A2A","MCP","NET","MAS"],vendor:true},
+  {sym:"NET",name:"Networking",cat:"Agent Collaboration & Networking",row:7,short:"Agent communication infrastructure",body:"Networking in agentic AI refers to the infrastructure enabling agents to find, connect to, and exchange information with other agents, tools, and services. This includes discovery protocols (how agents advertise capabilities), message formats (JSON-RPC, A2A, MCP), transport layers (HTTP, WebSockets, SSE), and routing logic. Well-designed agent networks are loosely coupled, allowing components to be swapped, upgraded, or scaled independently.",tags:["protocols","MCP","A2A","discovery","message passing","WebSockets","SSE"],related:["A2A","MCP","API","MAS","TASK"]},
+  {sym:"TASK",name:"Task Sharing",cat:"Agent Collaboration & Networking",row:7,short:"Distributing work across agents",body:"Task sharing describes the distribution of work across multiple agents or human-agent pairs. A task may be split by type (research vs. writing vs. code review), by domain (finance agent vs. legal agent), or by volume (parallel execution of similar sub-tasks). Effective task sharing requires clear interfaces between agents, result aggregation logic, and handling of dependencies and conflicts. LangGraph and Temporal support complex task sharing patterns.",tags:["delegation","parallelism","orchestration","LangGraph","Temporal","dependencies"],related:["HAA","MAS","CREW","NET","PLAN"]},
+  {sym:"LOCAL",name:"Local Agents",cat:"Deployment & Scaling",row:7,short:"Agents running on personal hardware",body:"Local agents run entirely on a user's own hardware, with models loaded via tools like Ollama, LM Studio, or llama.cpp. They offer privacy advantages (data never leaves the device), lower latency, and offline capability. The tradeoff is compute constraint — local models are typically smaller than frontier cloud models. Relevant for privacy-sensitive deployments, edge computing, and personal productivity agents.",tags:["Ollama","privacy","on-device","edge","offline","llama.cpp","LM Studio"],related:["CLOUD","UPD","MON"]},
+  {sym:"CLOUD",name:"Cloud Agents",cat:"Deployment & Scaling",row:7,short:"Agents on managed cloud platforms",body:"Cloud agents are deployed on managed infrastructure — AWS, GCP, Azure, or specialized agent hosting platforms. Cloud deployment offers scalability, reliability, managed model access, and integration with cloud-native services (storage, queues, identity, monitoring). Tradeoffs include data privacy considerations and cost at scale. Managed frameworks like AWS Bedrock Agents, Azure AI Agent Service, and Vertex AI Agent Builder simplify deployment.",tags:["AWS","Azure","GCP","scalability","managed","infrastructure","serverless"],related:["LOCAL","UPD","MON","AWS","AZR","GCP-tile"]},
+  {sym:"UPD",name:"Update Manager",cat:"Deployment & Scaling",row:7,short:"Agent versioning and lifecycle",body:"Update management covers versioning of models, prompts, tool definitions, and agent configurations. Because agents may behave differently after model updates or prompt changes, controlled rollout strategies (canary deployments, A/B testing, shadow mode) are essential. This also covers re-training schedules, fine-tune refresh cycles, and deprecation of outdated tool integrations. Treating agents like software with a proper release lifecycle is a mark of production maturity.",tags:["versioning","deployment","rollout","fine-tuning","canary","A/B testing"],related:["MON","FEED","CLOUD","LOCAL","FT"]},
+  // Vendor tiles - row 7
+  {sym:"Anthropic",name:"Anthropic",cat:"Vendor Tools",row:7,short:"Claude models and MCP specification",body:"Anthropic is the AI safety company founded in 2021 by former OpenAI researchers including Dario and Daniela Amodei. Anthropic develops the Claude family of large language models with a focus on AI safety research, constitutional AI, and interpretability. Claude models are available via API with support for tool use, vision, extended context, and agentic applications. Anthropic also publishes the Model Context Protocol (MCP) specification.",tags:["Claude","AI safety","constitutional AI","MCP","API","interpretability"],related:["MCP","OpenAI","HuggingFace"],vendor:true},
+  {sym:"OpenAI",name:"OpenAI",cat:"Vendor Tools",row:7,short:"GPT models, Assistants API, Swarm",body:"OpenAI developed the GPT series of large language models, ChatGPT, DALL-E, Whisper, and the o-series reasoning models. For agentic developers, OpenAI provides the Assistants API (stateful agents with tool use and file handling), function calling, the Responses API (successor to Assistants), and the Swarm framework for lightweight multi-agent patterns. OpenAI models remain widely used as the backbone of agentic pipelines.",tags:["GPT","Assistants API","function calling","Swarm","Responses API","ChatGPT","o-series"],related:["Anthropic","Gemini","HuggingFace"],vendor:true},
+  {sym:"Gemini",name:"Gemini / Google",cat:"Vendor Tools",row:7,short:"Google's multimodal AI platform",body:"Gemini is Google DeepMind's flagship family of multimodal large language models (1.5, 2.0, 2.5 series). It supports text, images, audio, video, and code with extremely long context windows (up to 2M tokens). Available via Google AI Studio and Vertex AI with function calling, code execution, and grounding via Google Search. Gemini 2.0 introduced native agentic capabilities. GCP's Vertex AI Agent Builder wraps Gemini for enterprise agent deployment.",tags:["Google","multimodal","long context","Vertex AI","function calling","GCP"],related:["OpenAI","Anthropic","Grok"],vendor:true},
+  {sym:"Grok",name:"Grok / xAI",cat:"Vendor Tools",row:7,short:"xAI model with real-time X data",body:"Grok is xAI's large language model developed by Elon Musk's AI company. Notable for integration with the X (formerly Twitter) platform, giving it real-time access to social media data. Available via API with support for tool use and function calling. Positioned as a less constrained model than competitors. For agentic applications, Grok is usable in pipelines requiring real-time social data or as an alternative frontier model.",tags:["xAI","LLM","real-time data","X platform","function calling"],related:["OpenAI","Anthropic","Gemini"],vendor:true},
+  {sym:"HuggingFace",name:"HuggingFace",cat:"Vendor Tools",row:7,short:"Open-source model hub and community",body:"HuggingFace is the central repository and community platform for open-source AI models, datasets, and inference infrastructure. For agentic developers it provides access to open-weight LLMs (Llama, Mistral, Qwen, Phi), embedding models, and the Transformers and PEFT libraries for fine-tuning. Inference Endpoints allow self-hosting. Spaces provides lightweight deployment for agent demos. Critical for anyone building on open models rather than proprietary APIs.",tags:["open-source","models","Transformers","datasets","fine-tuning","PEFT"],related:["Anthropic","OpenAI","FT","EMB"],vendor:true},
+  {sym:"AWS",name:"Amazon Web Services",cat:"Vendor Tools",row:7,short:"Cloud infra and Bedrock agents",body:"AWS provides infrastructure for deploying agentic AI at scale. Key services: Bedrock (managed foundation models and Bedrock Agents), Lambda (serverless agent actions), Step Functions (multi-step workflow orchestration), and S3/RDS for agent memory and state. Bedrock Agents is a managed framework for building agentic pipelines with tool use and memory, targeting enterprise teams who want managed infrastructure without building from scratch.",tags:["cloud","infrastructure","Bedrock","Lambda","serverless","Step Functions"],related:["AZR","GCP-tile","CLOUD"],vendor:true},
+  {sym:"AZR",name:"Microsoft Azure",cat:"Vendor Tools",row:7,short:"Microsoft enterprise AI cloud",body:"Azure provides a comprehensive enterprise AI platform: Azure OpenAI Service (managed GPT and o-series models), Azure AI Foundry (agent building and deployment), Azure AI Search (RAG retrieval infrastructure), and Semantic Kernel (open-source SDK for agentic applications). Deep integration with Microsoft 365, Power Platform, and Entra ID makes Azure the dominant platform for enterprise agentic deployments. Copilot Studio extends this to no-code agent building.",tags:["Microsoft","enterprise","Azure OpenAI","Semantic Kernel","AI Foundry","Power Platform"],related:["AWS","GCP-tile","CLOUD"],vendor:true},
+  {sym:"GCP",name:"Google Cloud Platform",cat:"Vendor Tools",row:7,short:"Vertex AI and agent infrastructure",body:"Google Cloud Platform provides AI and ML infrastructure: Vertex AI (managed ML and agent deployment), Vertex AI Agent Builder (conversational agent creation), Gemini API access, BigQuery ML (in-database ML), Cloud Run (serverless agent hosting), and Apigee (API management for tool integrations). GCP is particularly strong for data-intensive agentic applications given its integration with BigQuery and Google's data ecosystem.",tags:["Google","Vertex AI","BigQuery","Gemini","serverless","Apigee","Cloud Run"],related:["AWS","AZR","CLOUD","Gemini"],vendor:true},
+
+  // ROW 8 — Applications
+  {sym:"EDU",name:"Education Bots",cat:"Business & Use Cases",row:8,short:"Personalized tutoring agents",body:"Education bots are agentic systems designed to personalize learning: answering questions, generating practice problems, adapting difficulty based on learner performance, and providing explanations calibrated to the student's current understanding. Unlike a static FAQ chatbot, an education agent can maintain session context, recall past errors, and build a model of the learner's knowledge gaps over time. Duolingo and Khan Academy's AI features are consumer examples.",tags:["tutoring","personalization","adaptive learning","feedback","assessment"],related:["RAG","STM","FEED","CHAT"]},
+  {sym:"HR",name:"HR Assistants",cat:"Business & Use Cases",row:8,short:"Automate employee support",body:"HR assistants automate common human resources workflows: answering employee policy questions, routing leave requests, onboarding new hires, scheduling interviews, generating job descriptions, and surfacing relevant HR documentation. They typically operate as RAG-augmented agents over an HR knowledge base, with escalation paths to human HR staff for sensitive or complex cases.",tags:["HR","onboarding","policy","RAG","escalation","scheduling"],related:["RAG","CAL","SUP","HUMAN"]},
+  {sym:"SUP",name:"Customer Support Bots",cat:"Business & Use Cases",row:8,short:"Handle service queries at scale",body:"Customer support bots are among the most widely deployed agentic applications. They handle tier-1 inquiries (FAQs, order status, account info) via RAG over knowledge bases, escalate complex cases to human agents, and integrate with CRM and ticketing systems (Salesforce, Zendesk, Jira). Effective support bots require intent classification, confident fallback to human agents, and careful tone calibration. They represent the clearest current ROI case for enterprise agentic AI.",tags:["customer service","RAG","Zendesk","Salesforce","escalation","intent","Jira"],related:["RAG","HUMAN","FEED","CHAT"]},
+  {sym:"MKT",name:"Marketing Agents",cat:"Business & Use Cases",row:8,short:"Automate campaigns and content",body:"Marketing agents automate content creation, campaign management, audience targeting, and performance analysis. Use cases include generating ad copy variations, scheduling social posts, personalizing email sequences, A/B test analysis, and competitive monitoring. They integrate with marketing platforms (HubSpot, Salesforce Marketing Cloud, Meta Ads API) via tool use and can operate autonomously on defined campaign parameters.",tags:["content generation","campaigns","personalization","HubSpot","automation","A/B testing"],related:["SUM","IDEA","FEED","TC"]},
+  {sym:"CAL",name:"Calendar Agent",cat:"Business & Use Cases",row:8,short:"Scheduling and time management",body:"Calendar agents automate scheduling workflows: finding available meeting times, booking appointments, sending invites, rescheduling based on constraints, and managing recurring events. They integrate with calendar APIs (Google Calendar, Microsoft Graph/Outlook) and coordinate across multiple participants' availability. More sophisticated versions handle natural language scheduling requests and integrate with email agents for end-to-end automation.",tags:["scheduling","Google Calendar","Outlook","automation","Microsoft Graph","NLP"],related:["REM","TC","HR","CHAT"]},
+  {sym:"SHOP",name:"Shopping Agents",cat:"Business & Use Cases",row:8,short:"Product research and purchase",body:"Shopping agents automate product research, comparison, recommendation, and purchase on behalf of users. They can browse e-commerce sites, compare prices and reviews, apply coupons, and complete checkout flows. More sophisticated versions integrate with user preference models and purchase history. Browser-use and computer-use capabilities are enabling increasingly autonomous shopping automation.",tags:["e-commerce","recommendation","browser automation","purchase","computer use","comparison"],related:["TC","RAG","IMG","CHAT"]},
+  {sym:"DATA",name:"Data Analysis Agents",cat:"Business & Use Cases",row:8,short:"Generating insights from data",body:"Data analysis agents automate the pipeline from raw data to insight: querying databases, running statistical analysis, generating visualizations, and summarizing findings in natural language. They commonly combine SQL generation (text-to-SQL), Python code execution, and reporting. Tools like Pandas AI, Vanna, and Snowflake Cortex Analyst are examples. This use case has strong overlap with the BI domain and is a natural entry point for data professionals exploring agentic AI.",tags:["SQL","text-to-SQL","analytics","Snowflake","BI","Pandas AI","code execution"],related:["RAG","TC","SUM","DOC"]},
+  {sym:"LEGAL",name:"Legal AI Agent",cat:"Business & Use Cases",row:8,short:"Contracts, research, and compliance",body:"Legal AI agents assist with document review, contract analysis, legal research, due diligence, and compliance monitoring. They can identify key clauses, flag unusual terms, summarize case law, and cross-reference documents. Applications range from contract lifecycle management (CLM) to e-discovery automation and regulatory compliance monitoring. Legal agents must be highly accurate, transparent about uncertainty, and positioned as assisting — not replacing — licensed legal professionals.",tags:["contracts","due diligence","compliance","CLM","e-discovery","legal research","risk"],related:["RAG","DOC","HUMAN","ACC"]},
+];
+
+// Derived state
+const isDark = () => window.matchMedia && window.matchMedia('(prefers-color-scheme:dark)').matches;
+function cs(cat){const c=CATS[cat];if(!c)return{bg:'#eee',fg:'#333'};return isDark()?{bg:c.d,fg:c.dt}:{bg:c.l,fg:c.lt};}
+
+let activeCategory = null;
+let currentIdx = 0;
+let visibleIndices = [];
+let studied = new Set(JSON.parse(localStorage.getItem('aai_studied')||'[]'));
+
+function saveStudied(){localStorage.setItem('aai_studied',JSON.stringify([...studied]));}
+
+function updateProgress(){
+  const total = TILES.length;
+  const done = studied.size;
+  const pct = Math.round(done/total*100);
+  document.getElementById('pb-fill').style.width = pct+'%';
+  document.getElementById('pb-label').textContent = done+' / '+total+' studied';
+}
+
+function resetStudied(){
+  if(!confirm('Reset all progress?')) return;
+  studied.clear();
+  saveStudied();
+  document.querySelectorAll('.tile').forEach(t=>t.classList.remove('studied'));
+  updateProgress();
+}
+
+// Build category filter strip
+function buildCatStrip(){
+  const strip = document.getElementById('cat-strip');
+  const counts = {};
+  TILES.forEach(t=>{counts[t.cat]=(counts[t.cat]||0)+1;});
+  Object.keys(CATS).forEach(cat=>{
+    const btn = document.createElement('button');
+    btn.className='cat-btn';
+    btn.dataset.cat=cat;
+    const {bg,fg} = cs(cat);
+    const dot=document.createElement('div');
+    dot.className='cat-dot';
+    dot.style.background=bg;
+    dot.style.border=`1px solid ${fg}55`;
+    btn.appendChild(dot);
+    const lbl=document.createElement('span');
+    lbl.textContent=cat+' ('+( counts[cat]||0)+')';
+    btn.appendChild(lbl);
+    btn.addEventListener('click',()=>toggleCat(cat));
+    strip.appendChild(btn);
+  });
+}
+
+function toggleCat(cat){
+  activeCategory = activeCategory===cat ? null : cat;
+  document.querySelectorAll('.cat-btn').forEach(btn=>{
+    if(btn.dataset.cat===activeCategory){
+      const {bg,fg}=cs(activeCategory);
+      btn.classList.add('active');
+      btn.style.background=bg;
+      btn.style.color=fg;
+      btn.style.borderColor='transparent';
+    } else {
+      btn.classList.remove('active');
+      btn.style.background='';
+      btn.style.color='';
+      btn.style.borderColor='';
+    }
+  });
+  applyFilters();
+}
+
+// Build rows
+function buildRows(){
+  const container = document.getElementById('rows-container');
+  ROWS.forEach(row=>{
+    const rowNum = parseInt(row.num);
+    const tiles = TILES.filter(t=>t.row===rowNum);
+    if(!tiles.length) return;
+
+    const section = document.createElement('div');
+    section.className='row-section';
+    section.id='row-section-'+rowNum;
+
+    const label = document.createElement('div');
+    label.className='row-label';
+    label.innerHTML=`<span class="row-num">Row ${row.num}</span> ${row.label}`;
+    section.appendChild(label);
+
+    if(rowNum===8){
+      const band = document.createElement('div');
+      band.className='app-band';
+      const bandLabel = document.createElement('div');
+      bandLabel.className='app-band-label';
+      bandLabel.textContent='Application domains — illustrative use cases, not core concepts';
+      band.appendChild(bandLabel);
+      const tileRow = document.createElement('div');
+      tileRow.className='tile-row';
+      tiles.forEach(t=>tileRow.appendChild(makeTile(t)));
+      band.appendChild(tileRow);
+      section.appendChild(band);
+    } else {
+      const tileRow = document.createElement('div');
+      tileRow.className='tile-row cols-a';
+      tiles.forEach(t=>tileRow.appendChild(makeTile(t)));
+      section.appendChild(tileRow);
+    }
+    container.appendChild(section);
+  });
+}
+
+function makeTile(t){
+  const {bg,fg}=cs(t.cat);
+  const div=document.createElement('div');
+  div.className='tile'+(t.vendor?' vendor':'')+(studied.has(t.sym)?' studied':'');
+  div.id='tile-'+t.sym;
+  div.dataset.sym=t.sym;
+  div.style.background=bg;
+  div.style.color=fg;
+  if(t.vendor) div.style.borderColor=fg+'66';
+  div.innerHTML=`<div class="tile-sym">${t.sym}</div><div class="tile-name">${t.name}</div><div class="tile-desc">${t.short}</div>`;
+  div.addEventListener('click',()=>{
+    const idx=TILES.findIndex(x=>x.sym===t.sym);
+    openModal(idx);
+  });
+  return div;
+}
+
+// Filtering
+function applyFilters(){
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  visibleIndices=[];
+  TILES.forEach((t,i)=>{
+    const catOk = !activeCategory || t.cat===activeCategory;
+    const textOk = !q || t.sym.toLowerCase().includes(q)
+      ||t.name.toLowerCase().includes(q)
+      ||t.body.toLowerCase().includes(q)
+      ||t.cat.toLowerCase().includes(q)
+      ||(t.tags||[]).some(tg=>tg.toLowerCase().includes(q))
+      ||(t.related||[]).some(r=>r.toLowerCase().includes(q));
+    const el=document.getElementById('tile-'+t.sym);
+    if(el){
+      const show = catOk && textOk;
+      el.classList.toggle('dimmed',!show);
+      if(show) visibleIndices.push(i);
+    }
+  });
+  document.getElementById('no-match').style.display=visibleIndices.length===0?'block':'none';
+}
+
+// Modal
+function openModal(idx){
+  currentIdx=idx;
+  const t=TILES[idx];
+  const {bg,fg}=cs(t.cat);
+  const symEl=document.getElementById('m-sym');
+  symEl.textContent=t.sym;
+  symEl.style.background=bg;
+  symEl.style.color=fg;
+  symEl.style.border=`0.5px solid ${fg}44`;
+  const catEl=document.getElementById('m-cat');
+  catEl.textContent=t.cat+(t.vendor?' · vendor/tool':'');
+  catEl.style.background=bg;
+  catEl.style.color=fg;
+  catEl.style.border=`0.5px solid ${fg}44`;
+  document.getElementById('m-name').textContent=t.name;
+  document.getElementById('m-short').textContent=t.short;
+  document.getElementById('m-body').textContent=t.body;
+  const rowInfo=ROWS.find(r=>parseInt(r.num)===t.row);
+  document.getElementById('m-row-ctx').textContent=`Row ${t.row}: ${rowInfo?rowInfo.label:''}`;
+  const tagsEl=document.getElementById('m-tags');
+  tagsEl.innerHTML=(t.tags||[]).map(tg=>`<span class="modal-tag">${tg}</span>`).join('');
+  const relEl=document.getElementById('m-related');
+  if(t.related&&t.related.length){
+    relEl.innerHTML='Related: '+(t.related||[]).map(sym=>`<span onclick="jumpToRelated('${sym}')">${sym}</span>`).join('');
+  } else {
+    relEl.innerHTML='';
+  }
+  updateStudiedBtn(t.sym);
+  const pos=visibleIndices.indexOf(idx);
+  document.getElementById('m-progress').textContent=pos!==-1?`${pos+1} of ${visibleIndices.length} visible`:`${idx+1} of ${TILES.length}`;
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function updateStudiedBtn(sym){
+  const btn=document.getElementById('m-studied-btn');
+  if(studied.has(sym)){btn.textContent='✓ Marked as studied — click to unmark';btn.classList.add('done');}
+  else{btn.textContent='Mark as studied';btn.classList.remove('done');}
+}
+
+function toggleStudied(){
+  const t=TILES[currentIdx];
+  if(studied.has(t.sym)){studied.delete(t.sym);document.getElementById('tile-'+t.sym)?.classList.remove('studied');}
+  else{studied.add(t.sym);document.getElementById('tile-'+t.sym)?.classList.add('studied');}
+  saveStudied();
+  updateStudiedBtn(t.sym);
+  updateProgress();
+}
+
+function jumpToRelated(sym){
+  const idx=TILES.findIndex(t=>t.sym===sym);
+  if(idx!==-1) openModal(idx);
+}
+
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function closeIfBg(e){if(e.target===document.getElementById('overlay'))closeModal();}
+
+function navModal(dir){
+  if(!visibleIndices.length) return;
+  const pos=visibleIndices.indexOf(currentIdx);
+  const next=pos===-1?(dir>0?0:visibleIndices.length-1):(pos+dir+visibleIndices.length)%visibleIndices.length;
+  openModal(visibleIndices[next]);
+}
+
+document.addEventListener('keydown',e=>{
+  const open=document.getElementById('overlay').classList.contains('open');
+  if(open){
+    if(e.key==='Escape')closeModal();
+    if(e.key==='ArrowRight')navModal(1);
+    if(e.key==='ArrowLeft')navModal(-1);
+    if(e.key==='s'||e.key==='S')toggleStudied();
+  }
+});
+
+buildCatStrip();
+buildRows();
+applyFilters();
+updateProgress();
+</script>
+</body>
+</html>
